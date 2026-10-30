@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { pointTo } from "./highlight.js";
 import { BRAND } from "./brand.js";
 import { LETTERS, CATEGORIES, PROFILE_FIELDS, LAST_REVIEWED, byId } from "./letters.js";
 import { compose, plain, pieces, formatDate } from "./compose.js";
@@ -112,6 +113,7 @@ async function copyText(text) {
 }
 
 function LetterView({ letter, data, update, premium, goPremium, editingKey, setEditingKey, onBack, say }) {
+  const letterRef = useRef(null);
   const values = data.drafts[letter.id] || {};
   const setValue = (id, val) => update({ drafts: { ...data.drafts, [letter.id]: { ...values, [id]: val } } });
   const setProfile = (id, val) => update({ profile: { ...data.profile, [id]: val } });
@@ -169,10 +171,12 @@ function LetterView({ letter, data, update, premium, goPremium, editingKey, setE
         {recipient.map((f) => <Field key={f.id} f={f} value={values[f.id]} onChange={(v) => setValue(f.id, v)} />)}
         <h2>3. The details</h2>
         {details.map((f) => <Field key={f.id} f={f} value={values[f.id]} onChange={(v) => setValue(f.id, v)} />)}
+        <button type="button" className="btn-primary wide" onClick={() => pointTo(letterRef.current)}>👇 See my letter</button>
         <button type="button" className="link" onClick={onClear}>Clear this letter</button>
       </section>
 
-      <section className="card">
+      <section ref={letterRef} className="card answer" aria-live="polite">
+        <p className="answer-tag">👉 Here it is</p>
         <div className="row-between">
           <h2>Your letter</h2>
           <span className={blanks ? "badge badge-blanks" : "badge badge-ready"}>{blanks ? `${blanks} blank${blanks > 1 ? "s" : ""} to fill` : "Ready to send ✓"}</span>
@@ -194,7 +198,7 @@ function LetterView({ letter, data, update, premium, goPremium, editingKey, setE
       </section>
 
       <section className="card">
-        <h2>How to send it</h2>
+        <h2>📮 How to send it</h2>
         <ul className="plain">{letter.send.map((s) => <li key={s}>{s}</li>)}</ul>
         {letter.tips.length > 0 && (
           <>
